@@ -1,0 +1,112 @@
+<odoo>
+    <template id="professional_detail_template" name="Professional Detail">
+        <t t-call="website.layout">
+            <div class="container mt-4">
+                <style>
+                    .profile-card {
+                        background-color: #f8f9fa;
+                        padding: 20px;
+                        border-radius: 10px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                    }
+
+                    .profile-img {
+                        width: 150px;
+                        height: 150px;
+                        object-fit: cover;
+                        border-radius: 50%;
+                        border: 3px solid #6c757d;
+                    }
+
+                    .profile-info h2 {
+                        font-size: 1.8rem;
+                        font-weight: 700;
+                        color: #333;
+                    }
+
+                    .profile-info .subtitle {
+                        color: #777;
+                        font-size: 1rem;
+                        margin-bottom: 8px;
+                    }
+
+                    .profile-story {
+                        font-size: 1rem;
+                        line-height: 1.5;
+                        margin-top: 15px;
+                    }
+
+                    .services-list h5 {
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        margin-bottom: 15px;
+                    }
+
+                    .btn-custom {
+                        font-size: 0.9rem;
+                        padding: 0.5rem 1rem;
+                        border-radius: 4px;
+                    }
+
+                    .service-card {
+                        transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+                        border-radius: 8px;
+                        overflow: hidden;
+                    }
+
+                    .service-card:hover {
+                        background-color: #f0f8ff;
+                        transform: scale(1.05);
+                        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                    }
+
+                    .service-img {
+                        height: 150px;
+                        object-fit: cover;
+                        border-bottom: 1px solid #ddd;
+                    }
+
+                    .service-title {
+                        font-size: 1rem;
+                        font-weight: 600;
+                        margin: 0;
+                        color: #333;
+                    }
+
+                    .service-price {
+                        font-size: 1rem;
+                        font-weight: bold;
+                        color: #28a745;
+                    }
+                </style>
+
+                <!-- Professional Details -->
+                <div class="profile-card mb-5 p-4">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3 col-md-4 text-center">
+                            <t t-if="professional.image_1920">
+                                <img t-att-src="'data:image/png;base64,' + professional.image_1920.decode('utf-8')" 
+                                     alt="Professional Picture" 
+                                     class="img-fluid mb-3 profile-img"/>
+                            </t>
+                        </div>
+                        <div class="col-lg-9 col-md-8">
+                            <div class="profile-info">
+                                <h2><t t-esc="professional.name"/></h2>
+                                
+                                <!-- <div class="mb-2"><i class="fa fa-map-marker"></i> <t t-esc="professional.location"/></div> -->
+                                <t t-if="professional.partner_id.email">
+                                    <a t-att-href="'mailto:' + professional.partner_id.email" class="btn btn-primary btn-custom">
+                                        <i class="fa fa-envelope"></i> Contact Professional
+                                    </a>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </t>
+    </template>
+</odoo>

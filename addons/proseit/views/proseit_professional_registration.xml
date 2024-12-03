@@ -1,0 +1,354 @@
+<odoo>
+    <template id="portal_professional_registration" name="Professional Registration">
+        <t t-call="website.layout">
+            <div class="container">
+                <h2 class="text-center">Register as a Professional</h2>
+                
+                <!-- Registration Steps -->
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="registration-progress" role="progressbar" style="width: 33%;" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">Step 1 of 3</div>
+                </div>
+
+                <!-- Multi-Step Form -->
+                <form id="professional-registration-form" action="/professional/register/submit" method="post" enctype="multipart/form-data">
+                    <!-- Step 1: Personal Information -->
+                    <div class="form-step" id="step-1">
+                        <h3>Step 1: Bio Information</h3>
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" name="name" id="name" class="form-control" required="required"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_of_birth">Date of Birth</label>
+                            <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" required="required"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" name="email" id="email" class="form-control" required="required"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="alt_email">Alternative Email</label>
+                            <input type="email" name="alt_email" id="alt_email" class="form-control"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="tel" name="phone" id="phone" class="form-control" required="required"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="sex">Gender</label>
+                            <select name="sex" id="sex" class="form-control" required="required">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="identification_number">NIN/Passport Number</label>
+                            <input type="text" name="identification_number" id="identification_number" class="form-control" required="required"/>
+                        </div>
+                        <button type="button" class="btn btn-primary  mt-4 mb-4" onclick="nextStep(2)">Next</button>
+                    </div>
+
+                    <!-- Step 2: Professional Information -->
+                    <div class="form-step" id="step-2" style="display:none;">
+                        <h3>Step 2: Professional Information and Financial Account Details</h3>
+                        <!-- Button to Open Modal for Adding Education -->
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#educationModal">
+                            Add Education Details
+                        </button>
+
+                        <!-- Education Entries Table -->
+                        <h3>Education Details</h3>
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="education-entries-table">
+                                <thead>
+                                    <tr>
+                                        <th>Institution</th>
+                                        <th>Education Level</th>
+                                        <th>Start Year</th>
+                                        <th>Year Completed</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="education-entries-body">
+                                    <!-- Education entries will be dynamically added here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Modal for Adding Education -->
+                        <div class="modal fade" id="educationModal" tabindex="-1" role="dialog" aria-labelledby="educationModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="educationModalLabel">Add Education</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="education-form">
+                                            <div class="form-group">
+                                                <label for="modal_institution">Institution Name</label>
+                                                <input type="text" class="form-control" id="modal_institution" required="required"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="modal_education_level">Education Level</label>
+                                                <select class="form-control" id="modal_education_level" required="required">
+                                                    <option value="o_level">O-Level</option>
+                                                    <option value="gcse">GCSE</option>
+                                                    <option value="gse">GSE</option>
+                                                    <option value="a_level">A-Level</option>
+                                                    <option value="ordinary_certificate">Ordinary Certificate</option>
+                                                    <option value="ordinary_diploma">Ordinary Diploma</option>
+                                                    <option value="bachelors">Bachelors Degree</option>
+                                                    <option value="masters">Masters Degree</option>
+                                                    <option value="phd">PhD</option>
+                                                    <option value="others">Others</option>
+                                                </select>
+                                            </div>
+                                            <!-- Start Year -->
+                                            <div class="form-group">
+                                                <label for="modal_start_year">Start Date</label>
+                                                <input type="date" class="form-control" id="modal_start_year" required="required"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="modal_year_completed">Completion Date</label>
+                                                <input type="date" class="form-control" id="modal_year_completed" required="required"/>
+                                            </div>
+                                            <button type="button" class="btn btn-primary mt-4 mb-4" onclick="addEducationEntry()">Add</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Button to Open Modal for Adding Certifications -->
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#certificationModal">
+                            Add Certification Details
+                        </button>
+
+                        <!-- Certification Entries Table -->
+                        <h3>Certification Details</h3>
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="certification-entries-table">
+                                <thead>
+                                    <tr>
+                                        <th>Certification Name</th>
+                                        <th>Issuing Organization</th>
+                                        <th>Type of Certification</th>
+                                        <th>Date Awarded</th>
+                                        <th>Expiration Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="certification-entries-body">
+                                    <!-- Certification entries will be dynamically added here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Modal for Adding Certifications -->
+                        <div class="modal fade" id="certificationModal" tabindex="-1" role="dialog" aria-labelledby="certificationModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="certificationModalLabel">Add Certification</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="certification-form">
+                                            <div class="form-group">
+                                                <label for="modal_certification_name">Certification Name</label>
+                                                <input type="text" class="form-control" id="modal_certification_name" required="required"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="modal_issuing_organization">Issuing Organization</label>
+                                                <input type="text" class="form-control" id="modal_issuing_organization" required="required"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="modal_certification_type">Type of Certification</label>
+                                                <select class="form-control" id="modal_certification_type" required="required">
+                                                    <option value="professional">Professional Certification</option>
+                                                    <option value="attendance">Certificate of Attendance</option>
+                                                    <option value="completion">Certificate of Completion</option>
+                                                    <option value="academic">Academic</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="modal_certification_number">Competency Level</label>
+                                                <select class="form-control" id="modal_certification_competency" required="required">
+                                                    <option value="beginner">Beginner</option>
+                                                    <option value="intermediate">Intermediate</option>
+                                                    <option value="advanced">Advanced</option>
+                                                    <option value="expert">Expert</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="modal_date_awarded">Date Awarded</label>
+                                                <input type="date" class="form-control" id="modal_date_awarded"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="modal_expiration_date">Expiration Date</label>
+                                                <input type="date" class="form-control" id="modal_expiration_date"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="modal_certification_number">Certification Number</label>
+                                                <input type="text" class="form-control" id="modal_certification_number" />
+                                            </div>
+                                            <button type="button" class="btn btn-primary mt-4 mb-4" onclick="addCertificationEntry()">Add</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Professional Specializations -->
+                        <div class="form-group">
+                            <label for="specializations">Professional Specializations</label>
+                            <textarea name="specializations" id="specializations" class="form-control"></textarea>
+                        </div>
+
+                        <!-- Professional Work Links -->
+                        <div class="form-group">
+                            <label for="work_links">Links to Professional Work</label>
+                            <textarea name="work_links" id="work_links" class="form-control"></textarea>
+                        </div>
+
+                        <!-- ProSEIT Committee of Interest -->
+                        <div class="form-group">
+                            <label for="committee_of_interest">Committee of Interest</label>
+                            <select name="committee_of_interest" id="committee_of_interest" class="form-control">
+                                <option value="software">Software Engineers</option>
+                                <option value="process">Process Analysts</option>
+                                <option value="architects">Architects</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="years_experience">Years of Experience</label>
+                            <input type="number" name="years_experience" id="years_experience" class="form-control" required="required"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="professional_photo">Upload Professional Photo:</label>
+                            <input type="file" id="professional_photo" name="professional_photo" onchange="previewImage(this);" class="form-control-file"/>
+                        </div>
+                        <div class="form-group" id="image-preview" style="display:none;">
+                            <label for="professional_photo">Image Preview:</label>
+                            <br/>
+                            <img id="image-preview-tag" class="img-thumbnail" style="max-width: 200px;"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bank_account">Bank Account Number</label>
+                            <input type="text" name="bank_account" id="bank_account" class="form-control"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mobile_money_number">Mobile Money Number</label>
+                            <input type="text" name="mobile_money_number" id="mobile_money_number" class="form-control"/>
+                        </div>
+
+                        <button type="button" class="btn btn-secondary" onclick="prevStep(1)">Back</button>
+                        <button type="button" class="btn btn-primary mt-4 mb-4" onclick="nextStep(3)">Next</button>
+                    </div>
+
+                    <!-- Step 3: Skills -->
+                    <div class="form-step" id="step-3" style="display:none;">
+                        <h3>Step 3: Skills Map </h3>
+
+                        <!-- Button to Open Modal for Adding Skills -->
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#skillsModal">
+                            Add Skills
+                        </button>
+
+                            <!-- Technical Skills Entries Table -->
+                            <h3>Technical Skills</h3>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="technical-skills-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Skill Name</th>
+                                            <th>Proficiency Level</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="technical-skills-body">
+                                        <!-- Technical skills entries will be dynamically added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Soft Skills Entries Table -->
+                            <h3>Soft Skills</h3>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="soft-skills-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Skill Name</th>
+                                            <th>Proficiency Level</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="soft-skills-body">
+                                        <!-- Soft skills entries will be dynamically added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Modal for Adding Technical and Soft Skills -->
+                            <div class="modal fade" id="skillsModal" tabindex="-1" role="dialog" aria-labelledby="skillsModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="skillsModalLabel">Add Skill</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="skills-form">
+                                                <div class="form-group">
+                                                    <label for="skill_type">Skill Type</label>
+                                                    <select class="form-control" id="skill_type" required="required">
+                                                        <option value="technical">Technical Skill</option>
+                                                        <option value="soft">Soft Skill</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="skill_name">Skill Name</label>
+                                                    <input type="text" class="form-control" id="skill_name" required="required"/>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="competency_level">Competency Level</label>
+                                                    <select class="form-control" id="competency_level" required="required">
+                                                        <option value="1">1 - Beginner</option>
+                                                        <option value="2">2 - Novice</option>
+                                                        <option value="3">3 - Competent</option>
+                                                        <option value="4">4 - Proficient</option>
+                                                        <option value="5">5 - Expert</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" class="btn btn-primary mt-4 mb-4" onclick="addSkillEntry()">Add</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        <button type="button" class="btn btn-secondary" onclick="prevStep(2)">Back</button>
+                        <button type="button" class="btn btn-success mt-4 mb-4" onclick="submitForm()">Submit Registration</button>
+                    </div>
+                    
+                </form>    
+            </div>
+
+        </t>
+    </template>
+
+    <template id="portal_professional_thankyou" name="Thank You">
+        <t t-call="website.layout">
+            <div class="container text-center">
+                <h2>Thank You for Registering!</h2>
+                <p>Your profile is currently under review. You will be notified once it is approved.</p>
+            </div>
+        </t>
+    </template>
+</odoo>

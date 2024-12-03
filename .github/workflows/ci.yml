@@ -1,0 +1,91 @@
+name: CI/CD Pipeline for Odoo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }}"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Inject Environment Variables
+        run: |
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "PGDATA=/var/lib/postgresql/data/pgdata" >> .env
+          echo "HOST=postgres" >> .env
+          echo "USER=odoo" >> .env
+          echo "PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+
+      - name: Build Odoo Docker Image
+        run: docker-compose -f docker-compose.yml build
+
+      - name: Start Odoo Services
+        run: docker-compose -f docker-compose.yml up -d
+
+      - name: Wait for Services to be Ready
+        run: |
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:8069/web/database/selector | grep -q "Databases"; then
+              echo "Odoo is ready!";
+              exit 0;
+            fi
+            sleep 5;
+          done
+          echo "Odoo did not become ready in time";
+          docker-compose logs;
+          exit 1;
+
+      - name: Run Tests
+        run: |
+          docker-compose exec -T odoo odoo --test-enable --stop-after-init \
+          --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Deploy to Server
+        env:
+          DOCKER_HOST: ${{ secrets.DOCKER_HOST }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          docker-compose -f docker-compose.yml up -d
