@@ -21,9 +21,9 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd="pg_isready -U odoo -d odoo"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+          --health-interval=20s
+          --health-timeout=10s
+          --health-retries=5
 
     steps:
       - name: Checkout Code
@@ -42,8 +42,11 @@ jobs:
           echo "USER=odoo" >> .env
           echo "PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
 
-      - name: Build Odoo Docker Image
-        run: docker-compose -f docker-compose.yml build
+      - name: Print PostgreSQL Environment Variables
+        run: |
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}"
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}"
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}"
 
       - name: Start PostgreSQL Service
         run: |
@@ -53,6 +56,22 @@ jobs:
           -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
           -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
           -p 5432:5432 postgres:13
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..30}; do
+            if docker exec postgres pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}; then
+              echo "PostgreSQL is ready!";
+              exit 0;
+            fi
+            sleep 5;
+          done
+          echo "PostgreSQL did not become ready in time";
+          docker logs postgres;
+          exit 1;
+
+      - name: Build Odoo Docker Image
+        run: docker-compose -f docker-compose.yml build
 
       - name: Start Odoo Services
         run: docker-compose -f docker-compose.yml up -d
