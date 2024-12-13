@@ -23,7 +23,6 @@
                 'mail',
                 'website'
                 ],
-
     # always loaded
     'data': [
         'security/ir.model.access.csv',

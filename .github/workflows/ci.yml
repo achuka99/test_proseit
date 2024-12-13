@@ -33,7 +33,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up Docker
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
       - name: Inject Environment Variables
@@ -70,22 +70,38 @@ jobs:
           docker-compose exec -T odoo odoo --test-enable --stop-after-init \
           --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons
 
-  deploy:
-    needs: build-and-test
-    runs-on: ubuntu-latest
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
-
-      - name: Deploy to Server
-        env:
-          DOCKER_HOST: ${{ secrets.DOCKER_HOST }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Tag Docker Image
         run: |
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-          docker-compose -f docker-compose.yml up -d
+          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/odoo-proseit:latest
+          docker tag odoo_proseit_odoo $IMAGE_NAME
+
+      - name: Push Docker Image to Docker Hub
+        run: |
+          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/odoo-proseit:latest
+          docker push $IMAGE_NAME
+
+  # deploy:
+  #   needs: build-and-test
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+
+  #     - name: Set up SSH
+  #       uses: webfactory/ssh-agent@v0.5.3
+  #       with:
+  #         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+  #     - name: Deploy to Server
+  #       run: |
+  #         ssh -o StrictHostKeyChecking=no user@your-server-ip << 'EOF'
+  #           docker pull your-dockerhub-username/odoo-proseit:latest
+  #           docker-compose -f /path/to/your/docker-compose.yml up -d
+  #         EOF
