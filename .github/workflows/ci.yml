@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for Odoo
+name: CI/CD Pipeline for Odoo Proseit
 
 on:
   push:
