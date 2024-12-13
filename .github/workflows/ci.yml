@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for Odoo Proseit
+name: CI/CD Pipeline for Odoo Proseit Project
 
 on:
   push:
@@ -41,34 +41,6 @@ jobs:
           echo "HOST=postgres" >> .env
           echo "USER=odoo" >> .env
           echo "PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-
-      - name: Print PostgreSQL Environment Variables
-        run: |
-          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}"
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}"
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}"
-
-      - name: Start PostgreSQL Service
-        run: |
-          docker run -d \
-          --name postgres \
-          -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} \
-          -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-          -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-          -p 5432:5432 postgres:13
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          for i in {1..30}; do
-            if docker exec postgres pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}; then
-              echo "PostgreSQL is ready!";
-              exit 0;
-            fi
-            sleep 5;
-          done
-          echo "PostgreSQL did not become ready in time";
-          docker logs postgres;
-          exit 1;
 
       - name: Build Odoo Docker Image
         run: docker-compose -f docker-compose.yml build
