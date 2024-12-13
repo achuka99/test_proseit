@@ -18,14 +18,14 @@ jobs:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_USER: odoo
           PGDATA: /var/lib/postgresql/data/pgdata
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }}"
+          --health-cmd="pg_isready -U odoo -d odoo"
           --health-interval=20s
           --health-timeout=10s
           --health-retries=5
