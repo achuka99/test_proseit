@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_HOST: postgres
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_NAME: ${{ secrets.DB_NAME }}
@@ -66,7 +66,7 @@ jobs:
           POSTGRES_PASSWORD=${DB_PASSWORD}
           POSTGRES_USER=${DB_USER}
           PGDATA=/var/lib/postgresql/data/pgdata
-          HOST=${DB_HOST}
+          DB_HOST=${DB_HOST}
           EOF
 
       - name: Create required directories and files
@@ -98,12 +98,26 @@ jobs:
                 - odoo_data:/var/lib/odoo
                 - ./config:/etc/odoo
                 - ./addons:/mnt/extra-addons
+              depends_on:
+                - postgres
               networks:
                 - odoo_network
-          
+
+            postgres:
+              image: postgres:13
+              environment:
+                POSTGRES_DB: ${DB_NAME}
+                POSTGRES_USER: ${DB_USER}
+                POSTGRES_PASSWORD: ${DB_PASSWORD}
+              volumes:
+                - postgres_data:/var/lib/postgresql/data
+              networks:
+                - odoo_network
+
           volumes:
             odoo_data:
-          
+            postgres_data:
+
           networks:
             odoo_network:
               driver: bridge
