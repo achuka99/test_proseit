@@ -20,8 +20,6 @@ jobs:
       DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       DB_NAME: ${{ secrets.POSTGRES_DB }}
       ADMIN_PASSWORD: proseit
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
     steps:
       - name: Checkout Code
@@ -64,11 +62,12 @@ jobs:
       - name: Create .env file
         run: |
           cat << EOF > .env
-          POSTGRES_DB=${DB_NAME}
-          POSTGRES_PASSWORD=${DB_PASSWORD}
-          POSTGRES_USER=${DB_USER}
-          PGDATA=/var/lib/postgresql/data/pgdata
-          DB_HOST=${DB_HOST}
+          HOST=${DB_HOST}
+          PORT=5432
+          USER=${DB_USER}
+          PASSWORD=${DB_PASSWORD}
+          DB_NAME=${DB_NAME}
+          ADMIN_PASSWORD=${ADMIN_PASSWORD}
           EOF
 
       - name: Create required directories and files
@@ -95,34 +94,14 @@ jobs:
               image: achuka99/odoo-proseit:latest
               env_file: .env
               ports:
-                - "127.0.0.1:8069:8069"
+                - "8069:8069"
               volumes:
                 - odoo_data:/var/lib/odoo
                 - ./config:/etc/odoo
                 - ./addons:/mnt/extra-addons
-              depends_on:
-                - postgres
-              networks:
-                - odoo_network
-
-            postgres:
-              image: postgres:13
-              environment:
-                POSTGRES_DB: ${DB_NAME}
-                POSTGRES_USER: ${DB_USER}
-                POSTGRES_PASSWORD: ${DB_PASSWORD}
-              volumes:
-                - postgres_data:/var/lib/postgresql/data
-              networks:
-                - odoo_network
 
           volumes:
             odoo_data:
-            postgres_data:
-
-          networks:
-            odoo_network:
-              driver: bridge
           EOF
 
       - name: Build and tag Docker Image
