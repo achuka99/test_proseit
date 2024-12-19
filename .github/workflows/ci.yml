@@ -15,11 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      DB_HOST: ${{ secrets.HOST }}
-      DB_USER: ${{ secrets.POSTGRES_USER }}
-      DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      DB_NAME: ${{ secrets.POSTGRES_DB }}
-      ADMIN_PASSWORD: proseit
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
 
     steps:
       - name: Checkout Code
@@ -72,7 +71,6 @@ jobs:
           cat << EOF > config/odoo.conf
           [options]
           addons_path = /mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons
-          admin_passwd = ${ADMIN_PASSWORD}
           db_host = ${DB_HOST}
           db_port = 5432
           db_user = ${DB_USER}
