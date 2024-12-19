@@ -55,11 +55,11 @@ jobs:
       - name: Create .env file
         run: |
           cat << EOF > .env
-          POSTGRES_DB=odoo_test
-          POSTGRES_PASSWORD=odoo_test
-          POSTGRES_USER=odoo_test
+          POSTGRES_DB=iosdwhxzuakhhzzgqxbfgdim
+          POSTGRES_PASSWORD=P4GVTnuNBPg9NqV
+          POSTGRES_USER=ycybvwvlkxofvkzy
           PGDATA=/var/lib/postgresql/data/pgdata
-          HOST=postgres
+          HOST=102.134.147.233
           USER=odoo_test
           PASSWORD=odoo_test
           EOF
@@ -70,11 +70,11 @@ jobs:
           echo "[options]
           addons_path = /mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons
           admin_passwd = admin
-          db_host = postgres
+          db_host = 102.134.147.233
           db_port = 5432
-          db_user = odoo_test
-          db_password = odoo_test
-          db_name = odoo_test" > config/odoo.conf
+          db_user = ycybvwvlkxofvkzy
+          db_password = P4GVTnuNBPg9NqV
+          db_name = iosdwhxzuakhhzzgqxbfgdim" > config/odoo.conf
 
       - name: Create docker-compose.yml
         run: |
