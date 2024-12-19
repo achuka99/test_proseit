@@ -13,6 +13,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    env:
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
 
     steps:
       - name: Checkout Code
@@ -55,26 +61,26 @@ jobs:
       - name: Create .env file
         run: |
           cat << EOF > .env
-          POSTGRES_DB=iosdwhxzuakhhzzgqxbfgdim
-          POSTGRES_PASSWORD=P4GVTnuNBPg9NqV
-          POSTGRES_USER=ycybvwvlkxofvkzy
+          POSTGRES_DB=${DB_NAME}
+          POSTGRES_PASSWORD=${DB_PASSWORD}
+          POSTGRES_USER=${DB_USER}
           PGDATA=/var/lib/postgresql/data/pgdata
-          HOST=102.134.147.233
-          USER=odoo_test
-          PASSWORD=odoo_test
+          HOST=${DB_HOST}
           EOF
 
       - name: Create required directories and files
         run: |
           mkdir -p config addons
-          echo "[options]
+          cat << EOF > config/odoo.conf
+          [options]
           addons_path = /mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons
-          admin_passwd = admin
-          db_host = 102.134.147.233
+          admin_passwd = ${ADMIN_PASSWORD}
+          db_host = ${DB_HOST}
           db_port = 5432
-          db_user = ycybvwvlkxofvkzy
-          db_password = P4GVTnuNBPg9NqV
-          db_name = iosdwhxzuakhhzzgqxbfgdim" > config/odoo.conf
+          db_user = ${DB_USER}
+          db_password = ${DB_PASSWORD}
+          db_name = ${DB_NAME}
+          EOF
 
       - name: Create docker-compose.yml
         run: |
@@ -85,8 +91,6 @@ jobs:
             odoo:
               image: achuka99/odoo-proseit:latest
               env_file: .env
-              depends_on:
-                - postgres
               ports:
                 - "127.0.0.1:8069:8069"
               volumes:
@@ -96,17 +100,8 @@ jobs:
               networks:
                 - odoo_network
           
-            postgres:
-              image: postgres:13
-              env_file: .env
-              volumes:
-                - postgres_data:/var/lib/postgresql/data/pgdata
-              networks:
-                - odoo_network
-          
           volumes:
             odoo_data:
-            postgres_data:
           
           networks:
             odoo_network:
@@ -125,6 +120,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push Docker Image
+        if: github.ref == 'refs/heads/main'
         run: |
           docker push achuka99/odoo-proseit:${{ github.sha }}
           docker push achuka99/odoo-proseit:latest
