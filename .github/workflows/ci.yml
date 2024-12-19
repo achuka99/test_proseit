@@ -33,7 +33,6 @@ jobs:
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
-
       - name: Create Dockerfile
         run: |
           cat << 'EOF' > Dockerfile
@@ -58,18 +57,15 @@ jobs:
           
           CMD ["odoo"]
           EOF
-
       - name: Create .env file
         run: |
           cat << EOF > .env
+          POSTGRES_DB=${DB_NAME}
+          POSTGRES_PASSWORD=${DB_PASSWORD}
+          POSTGRES_USER=${DB_USER}
+          PGDATA=/var/lib/postgresql/data/pgdata
           HOST=${DB_HOST}
-          PORT=5432
-          USER=${DB_USER}
-          PASSWORD=${DB_PASSWORD}
-          DB_NAME=${DB_NAME}
-          ADMIN_PASSWORD=${ADMIN_PASSWORD}
           EOF
-
       - name: Create required directories and files
         run: |
           mkdir -p config addons
@@ -83,7 +79,6 @@ jobs:
           db_password = ${DB_PASSWORD}
           db_name = ${DB_NAME}
           EOF
-
       - name: Create docker-compose.yml
         run: |
           cat << EOF > docker-compose.yml
@@ -94,21 +89,25 @@ jobs:
               image: achuka99/odoo-proseit:latest
               env_file: .env
               ports:
-                - "8069:8069"
+                - "127.0.0.1:8069:8069"
               volumes:
                 - odoo_data:/var/lib/odoo
                 - ./config:/etc/odoo
                 - ./addons:/mnt/extra-addons
-
+              networks:
+                - odoo_network
+          
           volumes:
             odoo_data:
+          
+          networks:
+            odoo_network:
+              driver: bridge
           EOF
-
       - name: Build and tag Docker Image
         run: |
           docker build -t achuka99/odoo-proseit:${{ github.sha }} \
                       -t achuka99/odoo-proseit:latest .
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
