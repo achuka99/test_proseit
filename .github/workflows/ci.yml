@@ -19,6 +19,7 @@ jobs:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_NAME: ${{ secrets.DB_NAME }}
+      DB_PORT: ${{ secrets.DB_PORT }}
 
     steps:
       - name: Checkout Code
@@ -72,7 +73,7 @@ jobs:
           [options]
           addons_path = /mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons
           db_host = ${DB_HOST}
-          db_port = 5432
+          db_port = ${DB_PORT}
           db_user = ${DB_USER}
           db_password = ${DB_PASSWORD}
           db_name = ${DB_NAME}
