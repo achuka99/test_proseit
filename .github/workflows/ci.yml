@@ -64,7 +64,6 @@ jobs:
           POSTGRES_USER=${DB_USER}
           PGDATA=/var/lib/postgresql/data/pgdata
           HOST=${DB_HOST}
-          PGSSLMODE=disable  # Disable SSL
           EOF
       - name: Create required directories and files
         run: |
@@ -77,7 +76,6 @@ jobs:
           db_user = ${DB_USER}
           db_password = ${DB_PASSWORD}
           db_name = ${DB_NAME}
-          db_sslmode = disable  # Disable SSL
           EOF
       - name: Create docker-compose.yml
         run: |
