@@ -32,6 +32,7 @@ jobs:
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
+
       - name: Create Dockerfile
         run: |
           cat << 'EOF' > Dockerfile
@@ -42,7 +43,12 @@ jobs:
               python3-pip \
               build-essential \
               python3-dev \
+              libpq-dev \
+              libssl-dev \
               && rm -rf /var/lib/apt/lists/*
+          
+          # Install psycopg2 with SSL support
+          RUN pip3 install --no-cache-dir psycopg2-binary
           
           COPY ./config/odoo.conf /etc/odoo/
           COPY ./addons /mnt/extra-addons/
@@ -56,6 +62,7 @@ jobs:
           
           CMD ["odoo"]
           EOF
+
       - name: Create .env file
         run: |
           cat << EOF > .env
@@ -65,6 +72,7 @@ jobs:
           PGDATA=/var/lib/postgresql/data/pgdata
           HOST=${DB_HOST}
           EOF
+
       - name: Create required directories and files
         run: |
           mkdir -p config addons
@@ -76,7 +84,25 @@ jobs:
           db_user = ${DB_USER}
           db_password = ${DB_PASSWORD}
           db_name = ${DB_NAME}
+          
+          # Connection handling
+          db_maxconn = 64
+          db_sslmode = prefer
+          workers = 4
+          max_cron_threads = 2
+          
+          # Performance tuning
+          limit_memory_hard = 2684354560
+          limit_memory_soft = 2147483648
+          limit_request = 8192
+          limit_time_cpu = 600
+          limit_time_real = 1200
+          
+          # Debugging
+          log_level = debug
+          log_handler = [':DEBUG']
           EOF
+
       - name: Create docker-compose.yml
         run: |
           cat << EOF > docker-compose.yml
@@ -94,6 +120,8 @@ jobs:
                 - ./addons:/mnt/extra-addons
               networks:
                 - odoo_network
+              environment:
+                - HOST=${DB_HOST}
           
           volumes:
             odoo_data:
@@ -102,10 +130,12 @@ jobs:
             odoo_network:
               driver: bridge
           EOF
+
       - name: Build and tag Docker Image
         run: |
           docker build -t achuka99/odoo-proseit:${{ github.sha }} \
                       -t achuka99/odoo-proseit:latest .
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -117,3 +147,15 @@ jobs:
         run: |
           docker push achuka99/odoo-proseit:${{ github.sha }}
           docker push achuka99/odoo-proseit:latest
+
+      - name: Verify Configuration
+        run: |
+          docker-compose config
+          
+      - name: Test Build
+        run: |
+          docker-compose build --no-cache
+          docker-compose up -d
+          sleep 30
+          docker-compose logs odoo
+          docker-compose down
